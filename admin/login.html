@@ -83,6 +83,7 @@
             $('#myModal').modal();
             //alert(backData.msg);
             if (backData.code == 200) {
+              localStorage.setItem('token',backData.token);
               $('#myModal').on('hide.bs.modal', function (e) {
                 window.location.href = './index.html';
               })
