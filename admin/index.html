@@ -127,6 +127,25 @@
 
             })
 
+            //右侧tab栏
+
+
+            $('.level01').on('click',function(){
+                $(this).addClass('active').siblings('div').removeClass('active');
+
+                if($(this).index() == 1){
+                    $('.level02').slideToggle();
+                    $(this).find('b').toggleClass('rotate0');
+
+                    //默认点击第一个文章列表
+                    //只有dom元素才有这种效果  既可以事件冒泡 又可以链接跳转
+                    $('ul.level02>li>a')[0].click();
+                };
+            })
+
+            $('ul.level02>li').on('click',function(){
+                $(this).addClass('active').siblings('li').removeClass('active');
+            })
 
 
         })

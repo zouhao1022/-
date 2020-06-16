@@ -52,4 +52,174 @@
         </div>
     </div>
 
+    <!-- 整一个模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">New message</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" id="category_id" name="id">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">名称:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Slug:</label>
+                            <input type="text" class="form-control" id="message-text">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" data-toggle="modal" data-target="#myModal">Launch modal</button> -->
+                    <button type="button" id="clearID" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="addOrEdit">Send message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="./libs/http.js"></script>
+    <script id="category_list" type="text/html">
+        {{each data v}}
+        <tr>
+            <td>{{v.name}}</td>
+            <td>{{v.slug}}</td>
+            <td class="text-center">
+                <a href="javascript:void(0)" data_id="{{v.id}}" data-toggle="modal" data-target="#myModal"
+                    class=" btn btn-info btn-xs">编辑</a>
+                <a href="javascript:void(0)" data_id="{{v.id}}" class="btn btn-danger btn-xs btn_delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+
+    <script>
+        //入口函数
+        $(function () {
+
+            //1.进入页面刷新数据
+            function getData() {
+                $.ajax({
+                    url: BigNew.category_list,
+                    success: function (backData) {
+                        console.log(backData);
+                        var resHtml = template('category_list', backData);
+                        $('tbody').html(resHtml);
+                    }
+                });
+            };
+            getData();
+
+            //2.新增和编辑按钮模态框
+            $('#myModal').on('show.bs.modal', function (e) {
+                //console.log(e.relatedTarget);
+
+                if (e.relatedTarget === $('#xinzengfenlei')[0]) {
+                    $('#myModalLabel').text('新增分类');
+                    $('#addOrEdit').text('新增').addClass('btn-primary').removeClass('btn-success');
+                } else {
+                    $('#myModalLabel').text('编辑分类');
+                    $('#addOrEdit').text('编辑').addClass('btn-success').removeClass('btn-primary');
+                    var category_name = $(e.relatedTarget).parent().prev().text().trim();
+                    var category_slug = $(e.relatedTarget).parent().prev().prev().text().trim();
+                    var category_id = $(e.relatedTarget).attr('data_id');
+                    console.log(e.relatedTarget);
+                    console.log(category_id);
+                    $('#category_id').val(category_id);
+                    $('#recipient-name').val(category_slug);
+                    $('#message-text').val(category_name);
+                }
+            });
+
+            //3.新增和编辑按钮发布框
+            $('#addOrEdit').on('click', function () {
+                if ($(this).hasClass('btn-primary')) {
+                    //console.log('1');
+                    var category_name = $('#recipient-name').val().trim();
+                    var category_slug = $('#message-text').val().trim();
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: category_name,
+                            slug: category_slug
+                        },
+                        success: function (backData) {
+                            //console.log(backData);
+                            if (backData.code == 201) {
+                                alert('新增成功');
+                                $('#myModal').modal('hide');
+                                $('#recipient-name').val('');
+                                $('#message-text').val('');
+                                getData();
+                            }
+                        }
+                    })
+                } else {
+                    // console.log('2');
+                    var category_name = $('#recipient-name').val().trim();
+                    var category_slug = $('#message-text').val().trim();
+                    var category_id = $('#category_id').val();
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: category_id,
+                            name: category_name,
+                            slug: category_slug
+                        },
+                        success: function (backData) {
+                            //console.log(backData);
+                            if (backData.code == 200) {
+                                alert('编辑成功');
+                                $('#myModal').modal('hide');
+                                $('#recipient-name').val('');
+                                $('#message-text').val('');
+                                getData();
+                            }
+                        }
+                    });
+                };
+            });
+
+
+            //4.点击取消按钮注册事件
+            $('#clearID').on('click', function () {
+                // $('#recipient-name').val('');
+                // $('#message-text').val('');
+                //$('#myModal').modal('hide');
+                $('#myModal form')[0].reset();
+            });
+
+            //5.删除按钮事件
+
+            $('tbody').on('click', '.btn_delete', function () {
+                var category_id = $(this).attr('data_id');
+                if (confirm('你确定要删除嘛？')) {
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_delete,
+                        data: {
+                            id: category_id
+                        },
+                        success: function (backData) {
+                            console.log(backData);
+                            if(backData.code == 204){
+                                alert('删除成功');
+                                getData();
+
+                            }
+                        }
+                    })
+                }
+            })
+        })
+    </script>
+
 </html>
